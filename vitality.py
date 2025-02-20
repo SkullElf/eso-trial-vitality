@@ -1,19 +1,19 @@
 # vitality.py - ESO Trial Score & Vitality Calculator
 
 trials_data = {
-    "aetherian archive": {"base_score_hm": 124300},
-    "hel ra citadel": {"base_score_hm": 133100},
-    "sanctum ophidia": {"base_score_hm": 142700},
-    "maw of lorkhaj": {"base_score_hm": 108150},
-    "halls of fabrication": {"base_score_hm": 160100},
-    "asylum sanctorium": {"base_score_hm": 70000},
-    "cloudrest": {"base_score_hm": 85750, "base_score_hm_bonus": 88000},  # Bonus is the trash of all minis
-    "sunspire": {"base_score_hm": 207250},
-    "kyne's aegis": {"base_score_hm": 205950},
+    "aetherian archive": {"base_score_hm": 124300, "modifier": 900},
+    "hel ra citadel": {"base_score_hm": 133100, "modifier": 900},
+    "sanctum ophidia": {"base_score_hm": 142700, "modifier": 1500},
+    "maw of lorkhaj": {"base_score_hm": 108150, "modifier": 2700},
+    "halls of fabrication": {"base_score_hm": 160100, "modifier": 2700},
+    "asylum sanctorium": {"base_score_hm": 70000, "modifier": 1200},
+    "cloudrest": {"base_score_hm": 85750, "base_score_hm_bonus": 88000, "modifier": 1200},  # Bonus is the trash of all minis
+    "sunspire": {"base_score_hm": 207250, "modifier": 1800},
+    "kyne's aegis": {"base_score_hm": 205950, "modifier": 1200},
     "rockgrove": {"base_score_hm": 226700, "base_score_hm_bonus": 232200},  # Bonus is the snake and the wounded soldiers
-    "dreadsail reef": {"base_score_hm": 265850},
-    "sanity's edge": {"base_score_hm": 205200},
-    "lucent citadel": {"base_score_hm": 192850}
+    "dreadsail reef": {"base_score_hm": 265850, "modifier": 2700},
+    "sanity's edge": {"base_score_hm": 205200, "modifier": 2700},
+    "lucent citadel": {"base_score_hm": 192850, "modifier": 2700}
 }
 
 
@@ -27,21 +27,22 @@ def calculate_vitality(trial_name: str, trial_score: int, duration_seconds: int)
     trial_info = trials_data[trial_name]
     base_score = trial_info.get("base_score_hm")
     base_score_bonus = trial_info.get("base_score_hm_bonus")
+    modifier = trial_info.get('modifier')
 
     # Try calculating vitality with both base_score and base_score_bonus
     for score in [base_score_bonus, base_score]:
         if score is None:
             continue
 
-        vitality = (trial_score / (1 + (2700 - duration_seconds) / 10000) - score) / 1000
+         vitality = (trial_score / (1 + (modifier - duration_seconds) / 10000) - score) / 1000
         vitality = round(vitality)
 
         # Define score sensitivity per second
         score_change_per_second = (score + vitality * 1000) / 10000
-        max_allowed_mismatch = score_change_per_second  # Max mismatch within 1 second because milliseconds are ignored by the game
+        max_allowed_mismatch = score_change_per_second  # Max mismatch within 1 second
 
         # Verify the calculated vitality
-        recalculated_score = (score + vitality * 1000) * (1 + (2700 - duration_seconds) / 10000)
+        recalculated_score = (score + vitality * 1000) * (1 + (modifier - duration_seconds) / 10000)
         if abs(recalculated_score - trial_score) <= max_allowed_mismatch:
             return f"{vitality}/36" if score == base_score else f"{vitality}/36 with bonus"
 
